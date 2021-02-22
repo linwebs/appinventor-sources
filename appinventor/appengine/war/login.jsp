@@ -2,6 +2,9 @@
 <%@page import="com.google.appinventor.server.util.UriBuilder"%>
 <%@page import="org.apache.commons.lang3.StringEscapeUtils"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%
+response.sendRedirect("https://ai2.chsh.chc.edu.tw");
+%>
 <!doctype html>
 <%
    String error = StringEscapeUtils.escapeHtml4(request.getParameter("error"));
