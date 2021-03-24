@@ -1,201 +1,282 @@
-# Welcome to MIT App Inventor
+---
+title: 'CHSH AI2 Server Note'
+tags: AI2
+---
 
-## Introduction
+# CHSH AI2 Server Note
+https://ai2.linwebs.tw/
 
-Learn more about [MIT App Inventor](http://appinventor.mit.edu).
 
-This code is designed to be run in Google's App Engine. MIT runs a
-public instance that all are welcome to use to build App Inventor
-Applications. You do not need to compile or use this code if you wish
-to build MIT App Inventor applications.
+[TOC]
 
-We provide this code for reference and for experienced people who wish
-to operate their own App Inventor instance and/or contribute to the project.
+## 說明
+以下範例  
+目錄以 `/data-disk/ai2-server/appinventor-sources-20200523/` 為例  
+Domain以 [ai2.linwebs.tw](https://ai2.linwebs.tw/) 為例
 
-This code is tested and known to work with Java 8.
+## AI2 Server 登入網址 (Proxy)
+指定使用者名稱登入網址
 
-## Contributors
-The best way to go about integrating changes in App Inventor is to start a conversation in the [Open Source forum](https://community.appinventor.mit.edu/c/open-source-development/10) about whatever you intend to change or add.
+[https://ai2.linwebs.tw/login/google](https://ai2.linwebs.tw/login/google)
 
-We use ***very brief and informal*** design documents with descriptions of the proposed changes and screenshots of how the functionality would look like and behave, in order to gather as much feedback from the community, as early as possible. We generally use shared Google docs for this (with permissions to add comments), but any format that is accessible from a web browser (and allows comments) would do.
+## AI2 Server Web Root Path
+> /data-disk/ai2-server/appinventor-sources-20200401/appinventor/appengine/build/war
 
-If you have skipped this step and have gone ahead and made your changes already, feel free to open a pull request, but don't be too surprised if we ask you to go back and document it in a design document. Remember that the main goal of doing this is ***to gather as much feedback, as early as possible***. We will also possibly ask you to put an instance with your changes on [appspot](http://appspot.com), and provide a modified Companion app (if that applies) so that reviewers can play with the changes before looking at the source.
+## AI2 Server 轉址到Apache系統登入
+需新增以下網址轉址至login.jsp，以免從AI2 Server登出後，看到原生登入畫面
 
-Check out our open source [site](http://appinventor.mit.edu/appinventor-sources/) to find a lot more information about the project and how to contribute to it.
+> /data-disk/ai2-server/appinventor-sources-20200401/appinventor/appengine/build/war/login.jsp
 
-## Setup instructions (Vagrant)
+```
+<%
+response.sendRedirect("https://ai2.chsh.chc.edu.tw");
+%>
+```
 
-The easiest way to get a development environment up and running is to use the provided Vagrantfile. Install [Vagrant](https://vagrantup.com) and open a terminal in the root directory of this repository. Run the following commands
+## AI2 Server Logo
+Logo更改需更改以下6個檔案
 
+Logo原始檔位址: https://ai2.chsh.chc.edu.tw/images/codi_long.png
+
+https://ai2.chsh.chc.edu.tw/images/logo2.png
+
+小圖 ([AI2](https://ai2.linwebs.tw/)): 
+![AI2 Logo](https://ai2.chsh.chc.edu.tw/images/codi_long.png)
+
+小圖(英文) ([AI2](https://ai2.linwebs.tw/)): 
+![AI2 Logo](https://ai2.chsh.chc.edu.tw/images/codi_long-en.png)
+
+大圖 ([reference](https://ai2.linwebs.tw/reference/)): 
+
+![AI2 Logo](https://ai2.chsh.chc.edu.tw/images/logo2.png)
+
+修改請參照下方 [AI2系統檔案存放位置](#AI2%E7%B3%BB%E7%B5%B1%E6%AA%94%E6%A1%88%E5%AD%98%E6%94%BE%E4%BD%8D%E7%BD%AE) 指示進行修改
+
+
+## Build Server Status (Proxy)
+BuildServer 運行狀況
+[https://ai2.linwebs.tw/status/buildserver/health](https://ai2.linwebs.tw/status/buildserver/health)
+
+BuildServer 即時狀況
+[https://ai2.linwebs.tw/status/buildserver/vars](https://ai2.linwebs.tw/status/buildserver/vars)
+
+## 彰中AI2 TinyWebDB
+網址:
+[https://ai2.linwebs.tw/db/](https://ai2.linwebs.tw/db/)
+
+自動啟動TinyWebDB腳本位置
 ```bash
-vagrant plugin install vagrant-vbguest  # optionally for virtualbox users, and only once
-vagrant up                              # initializes the VM
+$ sudo vim /etc/rc.local
 ```
 
-It may take a few minutes for Vagrant to initialize as it will pull down a virtual machine image from the Internet and configure it with all of the App Inventor dependencies. Subsequent start-ups will be faster. Next, enter the virtual machine by running:
+用root權限新增一個名稱為[ai2db]的 screen，並執行指令
 
+
+## AI2 Server自動啟動
+自動啟動彰中AI2 Server腳本位置
 ```bash
-vagrant ssh
+$ sudo vim /etc/rc.local
 ```
 
-This should open up a terminal within the virtual machine in the directory `/vagrant/appinventor`. This directory is the same as the `appinventor` directory in this repository, shared between your host machine and the virtual machine. Any changes made on one side will be visible in the other. This allows you to edit files on your host machine with your preferred editor, while keeping the build environment relegated to the virtual machine. To build App Inventor, you may now run:
+用root權限新增
+一個名稱為[ai2sys]的screen，執行AI2 Server  
+一個名稱為[ai2pack]的screen，執行LocalBuildServer  
+另外一個名稱為[ai2db]的 screen，是執行TinyWebDB (非必要)
+```shell=
+screen -dmS ai2-sys sh
+screen -S ai2-sys -p 0 -X stuff "/data-disk/ai2-server/appengine-java-sdk-1.9.77/bin/dev_appserver.sh -p 8888 -a 0.0.0.0 /data-disk/ai2-server/appinventor-sources-20200523/appinventor/appengine/build/war/
+"
 
+screen -dmS ai2-pack sh
+screen -S ai2-pack -p 0 -X stuff "cd /data-disk/ai2-server/appinventor-sources-20200523/appinventor/buildserver/
+sleep 30
+ant RunLocalBuildServer address=ai2.chsh.chc.edu.tw
+"
+
+screen -dmS ai2-db sh
+screen -S ai2-db -p 0 -X stuff "python2.7 /data-disk/ai2db/appengine_py/dev_appserver.py --port 9980 --host 0.0.0.0 /data-disk/ai2db/appinventordb/
+"
+```
+## Apache Proxy 設定
+設定檔位置
+> /etc/httpd/conf.d/vhost-3-ai2-linwebs-tw.conf
+
+```
+# ai2.linwebs.tw
+<VirtualHost *:80>
+    ServerName ai2.linwebs.tw
+    ServerAdmin admin@linwebs.tw
+    ProxyRequests Off
+    ProxyPreserveHost On
+    <Location /status/>
+        ProxyPass http://localhost:9990/
+    </Location>
+    <Location />
+        ProxyPass http://localhost:8888/
+    </Location>
+    ErrorLog logs/ai2-linwebs-error_log
+    CustomLog logs/ai2-linwebs-access_log common
+</VirtualHost>
+
+# ai2.linwebs.tw SSL
+<VirtualHost *:443>
+    ServerName ai2.linwebs.tw
+    ServerAdmin admin@linwebs.tw
+    ProxyRequests Off
+    ProxyPreserveHost On
+    <Location /status/>
+        ProxyPass http://localhost:9990/
+        ProxyPassReverse http://localhost:9990/
+    </Location>
+    <Location />
+        ProxyPass http://localhost:8888/
+        ProxyPassReverse http://localhost:8888/
+    </Location>
+    ErrorLog logs/ai2-linwebs-ssl-error_log
+    CustomLog logs/ai2-linwebs common
+    SSLEngine on
+    SSLProxyEngine on
+    SSLProtocol ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+    SSLHonorCipherOrder on
+    SSLCipherSuite ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
+    SSLCertificateFile /etc/letsencrypt/live/ai2.linwebs.tw/cert.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/ai2.linwebs.tw/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/ai2.linwebs.tw/chain.pem
+    SetEnvIf User-Agent ".*MSIE.*" \
+         nokeepalive ssl-unclean-shutdown \
+         downgrade-1.0 force-response-1.0
+</VirtualHost>
+```
+
+SSL 自動更新腳本
+`# sudo crontab -e`
+
+ 每周一凌晨3:10自動更新SSL憑證
+```
+10 3 * * 1 /opt/letsencrypt/letsencrypt-auto certonly --apache --renew-by-default -d ai2.linwebs.tw && service httpd restart
+```
+
+## AI2系統檔案存放位置
+檔案存放對應路徑:  
+Web Path:
+https://ai2.linwebs.tw/static/images/codi_long.png
+Document Root:
+> /data-disk/ai2-server/appinventor-sources-20200523/appinventor/appengine/build/war/static/images
+
+## AI2 Server 更新
+切換至ai2 server目錄
 ```bash
-ant
+$ cd /data-disk/ai2-server
 ```
 
-and to run App Inventor:
-
+取得source檔:
 ```bash
-start_appinventor
+$ git clone https://github.com/mit-cml/appinventor-sources.git
 ```
 
-Press Ctrl+C to quit the server. Enter exit at the prompt to leave the virtual machine. To reclaim resources when you are not actively developing, you can run `vagrant halt` to stop the virtual machine. To completely remove the virtual machine, run `vagrant destroy`. If you destroy the VM, you will need to start these instructions from the top.
-
-Note 1: For macOS users, if you are using VirtualBox and get any error while initializing the VM it may be due to security restrictions in System Preferences, consider reading [this](https://medium.com/@Aenon/mac-virtualbox-kernel-driver-error-df39e7e10cd8) article. 
-
-Note 2: If it seems like none of the dependencies are installed in the VM, run ```vagrant provision```.
-
-For better performance, consider using the manual instructions.
-
-## Setup instructions (manual)
-
-This is a quick guide to get started with the sources. More detailed instructions can be found [here](https://docs.google.com/document/pub?id=1Xc9yt02x3BRoq5m1PJHBr81OOv69rEBy8LVG_84j9jc), a slide show can be seen [here](http://josmas.github.io/contributingToAppInventor2/#/), and all the [documentation](http://appinventor.mit.edu/appinventor-sources/#documentation) for the project is available in our [site](http://appinventor.mit.edu/appinventor-sources/).
-
-### Dependencies
-You will need a full Java JDK (version 8, OpenJDK preferred; JRE is not enough) and Python to compile and run the servers.
-
-You will also need a copy of the [Google Cloud SDK](https://cloud.google.com/appengine/docs/standard/java/download) for Java and [ant](http://ant.apache.org/).
-
-If you want to make changes to the source, you are going to need to run an automated test suite, and for that you will also need [phantomjs](http://phantomjs.org/). Have a look at the testing section for more information.
-
-Note 1: If you are working on a 64-bit linux system, you need to install 32-bit version of: glibc(to get a 32-bit version of ld-linux.so), zlib and libstdc++.
-
-If you are on a Debian-based distribution(Ubuntu), use:
-
-    $ sudo apt-get install libc6:i386 zlib1g:i386 libstdc++6:i386
-
-If you are on an RPM-based distribution(Fedora), use:
-
-    $ sudo dnf install glibc.i686 zlib.i686 libstdc++.i686
-
-Note 2: Certain Java 8 features, such as lambda expressions, are not supported on Android, so please don't use them in your changes to the source code.
-
-### Forking or cloning
-Consider ***forking*** the project if you want to make changes to the sources. If you simply want to run it locally, you can simply ***clone*** it.
-
-#### Forking
-If you decide to fork, follow the [instructions](https://help.github.com/articles/fork-a-repo) given by github. After that you can clone your own copy of the sources with:
-
-    $ git clone https://github.com/YOUR_USER_NAME/appinventor-sources.git
-
-Make sure you change *YOUR_USER_NAME* to your user name.
-
-Configuring a remote pointing to this repository is also a good idea if you are forking:
-
-    $ cd appinventor-sources
-    $ git remote add upstream https://github.com/mit-cml/appinventor-sources.git
-
-Finally, you will also have to make sure that you are ignoring files that need ignoring:
-
-    $ cp sample-.gitignore .gitignore
-
-### Checkout dependencies
-App Inventor uses Blockly, the web-based visual programming editor from Google, as a core part of its editor. Blockly core is made available to App Inventor as a git submodule. The first time after forking or cloning the repository, you will need to perform the following commands:
-
-    $ git submodule update --init
-
-For developers who will be working on Blockly within the context of App Inventor, the preferred checkout procedure is to perform a `git submodule init`, edit the `.git/config` file to use the read/write SSH URL for [MIT CML's Blockly fork](https://github.com/mit-cml/blockly) instead of the public read-only HTTPS URL assumed by default (to support pushing changes). After changing `.git/config`, a `git submodule update` will pull the repository.
-
-If you need to switch back to a branch that does contains the Blockly and Closure Library sources in the tree, you will need to run the command:
-
-    $ git submodule deinit --all
-
-to clear out the submodules ___before switching branches___. When switching back, you will need to repeat the initialization and update procedure above.
-
-### Troubleshooting common installation issues
-Run this command to run a self-diagnosis of your environment. This command tries to figure out common installation issues and offers you a solution to fix them yourself. Make sure this passes all the checks before you proceed further.
-
-#### Linux and macOS
+更改source檔名稱:
+(yyyymmdd填入年-月-日)
 ```bash
-./buildtools doctor
+$ mv appinventor-sources appinventor-sources-yyyymmdd
 ```
 
-#### Windows
+取得最新google app engine java 網址
 ```bash
-buildtools doctor
+$ wget https://cloud.google.com/appengine/docs/standard/java/download
 ```
 
-### Compiling
-Before compiling the code, an [auth key](https://docs.google.com/document/pub?id=1Xc9yt02x3BRoq5m1PJHBr81OOv69rEBy8LVG_84j9jc#h.yikyg2e1rfut) is needed. You can create one by running the following commands:
-
-    $ cd appinventor
-    $ ant MakeAuthKey
-
-Once the key is in place, type the following to compile (from the appinventor folder):
-
-    $ ant
-
-You will see a lot of stuff in the terminal and after a few minutes (it can take from 2 to 10 minutes, depending on your machine specs) you should see a message saying something like *Build Successful*.
-
-### Running the server(s)
-There are two servers in App Inventor, the main server that deals with project information, and the build server that creates apk files. More detailed information can be found in the [App Inventor Developer Overview](https://docs.google.com/document/d/1hIvAtbNx-eiIJcTA2LLPQOawctiGIpnnt0AvfgnKBok/pub) document.
-
-#### Running the main server
-
-    $ your-google-cloud-SDK-folder/bin/java_dev_appserver.sh
-            --port=8888 --address=0.0.0.0 appengine/build/war/
-
-Make sure you change *your-google-cloud-SDK-folder* to wherever in your hard drive you have placed the Google Cloud SDK.
-
-#### Running the build server
-The build server can be run from the terminal by typing:
-
-    $ cd appinventor/buildserver
-    $ ant RunLocalBuildServer
-
-Note that you will only need to run the build server if you are going to build an app as an apk. You can do all the layout and programming without having the build server running, but you will need it to download the apk.
-
-### Accessing your local server
-You should now be up and running; you can test this by pointing your browser to:
-
-    http://localhost:8888
-
-Before entering or scanning the QR code in the Companion, check the box labeled "Use Legacy Connection".
-
-### Running tests
-The automated tests depend on [Phantomjs](http://phantomjs.org/). Make sure you install it and add it to your path. After that, you can run all tests by typing the following in a terminal window:
-
-    $ ant tests
-
-### Building Release Code
-
-Release builds with optimizations turned on for the web components of the system can be done by passing `-Drelease=true` to `ant`, e.g.:
-
-```
-ant -Drelease=true noplay
+解壓縮google app engine
+(xx填入版本號)
+https://cloud.google.com/appengine/docs/standard/java/download
+```bash
+$ unzip appengine-java-sdk-1.9.xx.zip
 ```
 
-The release configuration sets the following additional options:
+更改兩目錄權限為777
+```bash
+$ chmod 777 appengine-java-sdk-1.9.xx appinventor-sources-yyyymmdd -R
+```
 
-- Blockly Editor is compiled with SIMPLE optimizations (instead of RAW)
-- App Engine YaClient module is compiled without `<collapse-all-properties/>` to create per-language/browser builds
-- App Engine YaClient module is compiled with optimization tuned to 9 and with 8 threads
+進入ai2 source目錄
+```bash
+$ cd appinventor-sources-yyyymmdd/
+```
 
-### Hot-reloading GWT code with 'Super Dev Mode'
-1. Run `ant devmode`
-2. [Run the main server](#running-the-main-server).
-3. Open http://localhost:9876 (*GWT CodeServer*) and drag the two bookmarklets (*Dev Mode On & Off*) to the bookmarks bar.
-4. Open http://localhost:8888 (*App Engine server*)
-5. To see changes "live":
-   1. Save your changes in file.
-   2. Click on the *"Dev Mode On"* bookmarklet.
-   3. A popup will be shown with a button to compile `ode` module.
-   4. Press that button to compile. (That button is actually a bookmarklet. So you can drag this button to the bookmarks bar as well. This will come handy for subsequent compilations)
-   5. After that, *GWT CodeServer* will compile the module incrementally.
-   6. Refresh the page and that's it! The changes are live.
+submodule update
+```bash
+$ git submodule update --init
+```
 
-Logs can be found at http://localhost:9876/log/ode and SourceMaps at http://localhost:9876/sourcemaps/ode
+進入ai2 目錄
+```bash
+$ cd appinventor
+```
 
-## Need help?
-Join [our community](https://community.appinventor.mit.edu/).
+編譯ai2 source檔
+```bash
+$ ant
+```
+
+複製先前版本使用者資料
+```bash
+$ cp /data-disk/ai2-server/appinventor-sources-20180124/appinventor/appengine/build/war/WEB-INF/appengine-generated /data-disk/ai2-server/appinventor-sources-yyyymmdd/appinventor/appengine/build/war/WEB-INF/appengine-generated -r
+```
+
+## ant MakeAuthKey
+:::warning
+:warning: 此指令已經不須再執行了，執行會使原本的使用者都無法登入
+:::
+
+AI2 系統須有 auth key 才可運作
+預設是存在執行的使用者根目錄，所以使用 sudo 執行時是放在以下資料夾內
+> /root/.appinventor
+
+執行指令
+```bash
+$ cd /data-disk/ai2-server/appinventor-sources-yyyymmdd/appinventor/
+$ ant MakeAuthKey
+```
+
+## 更新時須修改檔案(撰寫中)
+以下內容撰寫中，請暫時不要使用
+註: 以下 `$AI2_SOURCE_PATH` 的值為 `/data-disk/ai2-server/appinventor-sources-yyyymmdd`
+
+
+* 語言翻譯
+	> $AI2_SOURCE_PATH/appinventor/appengine/src/com/google/appinventor/client/languages.json
+
+	* 繁「体」中文 => 繁體中文
+
+* web 設定檔
+	> $AI2_SOURCE_PATH/appinventor//appengine/war/WEB-INF/appengine-web.xml
+	* 登入參數
+	* 靜態網址... 等
+
+## 新 google-cloud-sdk
+/opt/google-cloud-sdk/bin/java_dev_appserver.sh
+
+## 路徑
+* logo.png
+	* /appinventor/appengine/war/static/images/
+* codi_long.png
+	* /appinventor/appengine/war/static/images/codi_long.png
+	* /appinventor/docs/markdown/reference/blocks/images/codi_long.png
+	* /appinventor/docs/markdown/reference/components/images/codi_long.png
+	* /appinventor/docs/html/reference/blocks/images/codi_long.png
+	* /appinventor/docs/html/reference/components/images/codi_long.png
+* 圖片 /appinventor/appengine/src/com/google/appinventor/images/
+* 語言 /appinventor/appengine/src/com/google/appinventor/client/
+
+## 舊 crontab
+00 4 1 4,8,12 * sh /data-disk/ai2-server/update/update.sh > /data-disk/ai2-server/update/update.log
+
+## 翻譯
+欢迎使用 App Inventor 2 测试版！
+
+## 模擬器 error code
+
+solution: https://community.appinventor.mit.edu/t/aistarter-update-mit-ai2-companion2-to-2-58au/7587
+
+```
+Error from Companion: java.lang.RuntimeException: invalid syntax in eval form: :9:1: caught exception in inliner for # - java.lang.RuntimeException: no such class: com.google.appinventor.components.runtime.com.google.appinventor.components.runtime.Label gnu.bytecode.ObjectType.getReflectClass(ObjectType.java:148) gnu.bytecode.ClassType.getModifiers(ClassType.java:103) gnu.bytecode.ClassType.isInterface(ClassType.java:471) gnu.expr.InlineCalls.checkType(InlineCalls.java:56) gnu.expr.InlineCalls.visit(InlineCalls.java:49) gnu.expr.InlineCalls.visitSetExpValue(InlineCalls.java:363) gnu.expr.InlineCalls.visitSetExpValue(InlineCalls.java:28) gnu.expr.ExpVisitor.visitSetExp(ExpVisitor.java:114) gnu.expr.InlineCalls.visitSetExp(InlineCalls.java:369) gnu.expr.InlineCalls.visitSetExp(InlineCalls.java:28) gnu.expr.SetExp.visit(SetExp.java:406) gnu.expr.ExpVisitor.visit(ExpVisitor.java:55) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.visitBeginExp(InlineCalls.java:272) gnu.expr.InlineCalls.visitBeginExp(InlineCalls.java:28) gnu.expr.BeginExp.visit(BeginExp.java:156) gnu.expr.ExpVisitor.visit(ExpVisitor.java:51) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.visitBeginExp(InlineCalls.java:272) gnu.expr.InlineCalls.visitBeginExp(InlineCalls.java:28) gnu.expr.BeginExp.visit(BeginExp.java:156) gnu.expr.ExpVisitor.visit(ExpVisitor.java:51) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.visitLetExp(InlineCalls.java:317) gnu.expr.InlineCalls.visitLetExp(InlineCalls.java:28) gnu.expr.LetExp.visit(LetExp.java:207) gnu.expr.ExpVisitor.visit(ExpVisitor.java:51) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.visit(InlineCalls.java:28) gnu.expr.LambdaExp.visitChildrenOnly(LambdaExp.java:1664) gnu.expr.LambdaExp.visitChildren(LambdaExp.java:1651) gnu.expr.InlineCalls.visitScopeExp(InlineCalls.java:279) gnu.expr.InlineCalls.visitLambdaExp(InlineCalls.java:349) gnu.expr.InlineCalls.visitLambdaExp(InlineCalls.java:28) gnu.expr.LambdaExp.visit(LambdaExp.java:1640) gnu.expr.ExpVisitor.visit(ExpVisitor.java:55) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.visit(InlineCalls.java:28) gnu.expr.ExpVisitor.visitAndUpdate(ExpVisitor.java:162) gnu.expr.ExpVisitor.visitExps(ExpVisitor.java:176) gnu.expr.ApplyExp.visitArgs(ApplyExp.java:416) gnu.kawa.reflect.CompileInvoke.validateApplyInvoke(CompileInvoke.java:23) java.lang.reflect.Method.invokeNative(Native Method) java.lang.reflect.Method.invoke(Method.java:521) gnu.expr.InlineCalls.maybeInline(InlineCalls.java:467) gnu.expr.QuoteExp.validateApply(QuoteExp.java:150) gnu.expr.ReferenceExp.validateApply(ReferenceExp.java:191) gnu.kawa.functions.CompilationHelpers.validateApplyToArgs(CompilationHelpers.java:66) java.lang.reflect.Method.invokeNative(Native Method) java.lang.reflect.Method.invoke(Method.java:521) gnu.expr.InlineCalls.maybeInline(InlineCalls.java:467) gnu.expr.QuoteExp.validateApply(QuoteExp.java:150) gnu.expr.ReferenceExp.validateApply(ReferenceExp.java:191) gnu.expr.InlineCalls.visitApplyExp(InlineCalls.java:119) gnu.expr.InlineCalls.visitApplyExp(InlineCalls.java:28) gnu.expr.ApplyExp.visit(ApplyExp.java:411) gnu.expr.ExpVisitor.visit(ExpVisitor.java:55) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.QuoteExp.validateApply(QuoteExp.java:162) gnu.expr.ReferenceExp.validateApply(ReferenceExp.java:191) gnu.kawa.functions.CompilationHelpers.validateApplyToArgs(CompilationHelpers.java:66) java.lang.reflect.Method.invokeNative(Native Method) java.lang.reflect.Method.invoke(Method.java:521) gnu.expr.InlineCalls.maybeInline(InlineCalls.java:467) gnu.expr.QuoteExp.validateApply(QuoteExp.java:150) gnu.expr.ReferenceExp.validateApply(ReferenceExp.java:191) gnu.expr.InlineCalls.visitApplyExp(InlineCalls.java:119) gnu.expr.InlineCalls.visitApplyExp(InlineCalls.java:28) gnu.expr.ApplyExp.visit(ApplyExp.java:411) gnu.expr.ExpVisitor.visit(ExpVisitor.java:51) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.visitBeginExp(InlineCalls.java:272) gnu.expr.InlineCalls.visitBeginExp(InlineCalls.java:28) gnu.expr.BeginExp.visit(BeginExp.java:156) gnu.expr.ExpVisitor.visit(ExpVisitor.java:51) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.visit(InlineCalls.java:28) gnu.expr.LambdaExp.visitChildrenOnly(LambdaExp.java:1664) gnu.expr.LambdaExp.visitChildren(LambdaExp.java:1651) gnu.expr.InlineCalls.visitScopeExp(InlineCalls.java:279) gnu.expr.InlineCalls.visitLambdaExp(InlineCalls.java:349) gnu.expr.InlineCalls.visitLambdaExp(InlineCalls.java:28) gnu.expr.ExpVisitor.visitModuleExp(ExpVisitor.java:103) gnu.expr.ModuleExp.visit(ModuleExp.java:482) gnu.expr.ExpVisitor.visit(ExpVisitor.java:51) gnu.expr.InlineCalls.visit(InlineCalls.java:46) gnu.expr.InlineCalls.inlineCalls(InlineCalls.java:33) gnu.expr.Compilation.walkModule(Compilation.java:994) gnu.expr.Compilation.process(Compilation.java:1965) gnu.expr.ModuleInfo.loadByStages(ModuleInfo.java:330) gnu.expr.ModuleExp.evalModule1(ModuleExp.java:238) gnu.expr.ModuleExp.evalModule(ModuleExp.java:198) gnu.expr.Language.eval(Language.java:943) gnu.expr.Language.eval(Language.java:883) gnu.expr.Language.eval(Language.java:865) com.google.appinventor.components.runtime.util.AppInvHTTPD.serve(AppInvHTTPD.java:188) com.google.appinventor.components.runtime.util.NanoHTTPD$HTTPSession.run(NanoHTTPD.java:470) java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1068) java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:561) java.lang.Thread.run(Thread.java:1096)
+```
