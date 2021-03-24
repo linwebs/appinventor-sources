@@ -4,28 +4,103 @@ tags: AI2
 ---
 
 # CHSH AI2 Server Note
-https://ai2.linwebs.tw/
-
+https://ai2.linwebs.tw/  
+hackmd: https://hackmd.io/@linwebstw/BklO1UBEL
 
 [TOC]
 
 ## 說明
-以下範例  
-目錄以 `/data-disk/ai2-server/appinventor-sources-20200523/` 為例  
-Domain以 [ai2.linwebs.tw](https://ai2.linwebs.tw/) 為例
+以下範例目錄以 `/data-disk/ai2-server/appinventor-sources-20210223/` 為例  
+Domain 以 [ai2.linwebs.tw](https://ai2.linwebs.tw/) 為例
 
 ## AI2 Server 登入網址 (Proxy)
 指定使用者名稱登入網址
 
 [https://ai2.linwebs.tw/login/google](https://ai2.linwebs.tw/login/google)
 
+
+## AI2 Server 更新(2021/3)
+* 查看 remote
+	```
+	(local)$ git remote -v
+	```
+* 新增 AI2 官方 source
+	```
+	(local)$ git remote add mit-cml https://github.com/mit-cml/appinventor-sources.git
+	```
+* 取得更新
+	```
+	(local)$ git fetch mit-cml
+	```
+* commit 更新
+	```
+	(local)$ git commit -am "commit message"
+	```
+* push 回 GitHub
+	```
+	(local)$ git push
+	```
+* SSH 進入 Server
+	```
+	(local)$ ssh hostname -l username
+	```
+* 關閉 ai2 服務
+	```
+	(server)$ sudo screen -r ai2-sys-2021
+	[Ctrl + C]
+	[Ctrl + A] [D] # 退出
+	```
+* 關閉 ai2 打包服務
+	```
+	(server)$ sudo screen -r ai2-pack-2021
+	[Ctrl + C]
+	[Ctrl + A] [D] # 退出
+	```
+* ※ Server 先備份(非常重要:warning: )
+	```
+	(server)$ cd /data-disk/ai2-server/
+	(server)$ cp appinventor-sources-20210223 appinventor-sources-backup -R
+	```
+* 存檔備份
+	```
+	(server)$ cd /data-disk/ai2-server/
+	(server)$ cp appinventor-sources-20210223/appinventor/appengine/build/war/WEB-INF/appengine-generated AllSource/Source-appinventor-sources-20210223
+	```
+* Server pull 回更新
+	```
+	(server)$ cd /data-disk/ai2-server/appinventor-sources-20210223
+	(server)$ git pull
+	```
+* ant 重新建置
+	```
+	(server)$ cd /data-disk/ai2-server/appinventor-sources-20210223/appinventor
+	(server)$ ant clean all # 請注意，此動作會清除使用者存檔
+	```
+* 重啟 ai2 服務
+	```
+	(server)$ sudo screen -r ai2-sys-2021 # ai2 server
+	(server)$ /opt/google-cloud-sdk/bin/java_dev_appserver.sh -p 8888 -a 0.0.0.0 /data-disk/ai2-server/appinventor-sources-20210223/ainventor/appengine/build/war/
+	```
+* 重啟 ai2 打包服務
+	```
+	(server)$ sudo screen -r ai2-pack-2021
+	(server)$ cd /data-disk/ai2-server/appinventor-sources-20210223/appinventor/buildserver
+	(server)$ ant RunLocalBuildServer
+	```
+* Reference:
+	1. [怎麼跟上當初 fork 專案的進度？ - 為你自己學 Git](https://gitbook.tw/chapters/github/syncing-a-fork.html)
+	2. [Pull 下載更新 - 為你自己學 Git
+	](https://gitbook.tw/chapters/github/pull-from-github.html)
+
 ## AI2 Server Web Root Path
-> /data-disk/ai2-server/appinventor-sources-20200401/appinventor/appengine/build/war
+```
+/data-disk/ai2-server/appinventor-sources-20210223/appinventor/appengine/build/war
+```
 
 ## AI2 Server 轉址到Apache系統登入
 需新增以下網址轉址至login.jsp，以免從AI2 Server登出後，看到原生登入畫面
 
-> /data-disk/ai2-server/appinventor-sources-20200401/appinventor/appengine/build/war/login.jsp
+> /data-disk/ai2-server/appinventor-sources-20210223/appinventor/appengine/build/war/login.jsp
 
 ```
 <%
@@ -46,9 +121,7 @@ https://ai2.chsh.chc.edu.tw/images/logo2.png
 小圖(英文) ([AI2](https://ai2.linwebs.tw/)): 
 ![AI2 Logo](https://ai2.chsh.chc.edu.tw/images/codi_long-en.png)
 
-大圖 ([reference](https://ai2.linwebs.tw/reference/)): 
-
-![AI2 Logo](https://ai2.chsh.chc.edu.tw/images/logo2.png)
+大圖 ([reference](https://ai2.linwebs.tw/reference/)): ![AI2 Big Logo](https://ai2.linwebs.tw/static/images/logo2.png)
 
 修改請參照下方 [AI2系統檔案存放位置](#AI2%E7%B3%BB%E7%B5%B1%E6%AA%94%E6%A1%88%E5%AD%98%E6%94%BE%E4%BD%8D%E7%BD%AE) 指示進行修改
 
@@ -84,11 +157,11 @@ $ sudo vim /etc/rc.local
 另外一個名稱為[ai2db]的 screen，是執行TinyWebDB (非必要)
 ```shell=
 screen -dmS ai2-sys sh
-screen -S ai2-sys -p 0 -X stuff "/data-disk/ai2-server/appengine-java-sdk-1.9.77/bin/dev_appserver.sh -p 8888 -a 0.0.0.0 /data-disk/ai2-server/appinventor-sources-20200523/appinventor/appengine/build/war/
+screen -S ai2-sys -p 0 -X stuff "/data-disk/ai2-server/appengine-java-sdk-1.9.77/bin/dev_appserver.sh -p 8888 -a 0.0.0.0 /data-disk/ai2-server/appinventor-sources-20210223/appinventor/appengine/build/war/
 "
 
 screen -dmS ai2-pack sh
-screen -S ai2-pack -p 0 -X stuff "cd /data-disk/ai2-server/appinventor-sources-20200523/appinventor/buildserver/
+screen -S ai2-pack -p 0 -X stuff "cd /data-disk/ai2-server/appinventor-sources-20210223/appinventor/buildserver/
 sleep 30
 ant RunLocalBuildServer address=ai2.chsh.chc.edu.tw
 "
@@ -99,21 +172,16 @@ screen -S ai2-db -p 0 -X stuff "python2.7 /data-disk/ai2db/appengine_py/dev_apps
 ```
 ## Apache Proxy 設定
 設定檔位置
-> /etc/httpd/conf.d/vhost-3-ai2-linwebs-tw.conf
+> /etc/httpd/conf.d/vhost-2-ai2-linwebs-tw.conf
 
 ```
 # ai2.linwebs.tw
 <VirtualHost *:80>
     ServerName ai2.linwebs.tw
     ServerAdmin admin@linwebs.tw
-    ProxyRequests Off
-    ProxyPreserveHost On
-    <Location /status/>
-        ProxyPass http://localhost:9990/
-    </Location>
-    <Location />
-        ProxyPass http://localhost:8888/
-    </Location>
+    Redirect permanent / https://ai2.linwebs.tw/
+#    ProxyRequests Off
+#    ProxyPreserveHost On
     ErrorLog logs/ai2-linwebs-error_log
     CustomLog logs/ai2-linwebs-access_log common
 </VirtualHost>
@@ -124,6 +192,10 @@ screen -S ai2-db -p 0 -X stuff "python2.7 /data-disk/ai2db/appengine_py/dev_apps
     ServerAdmin admin@linwebs.tw
     ProxyRequests Off
     ProxyPreserveHost On
+    <Location /db/>
+        ProxyPass http://localhost:9980/
+        ProxyPassReverse http://localhost:9980/
+    </Location>
     <Location /status/>
         ProxyPass http://localhost:9990/
         ProxyPassReverse http://localhost:9990/
@@ -161,9 +233,9 @@ SSL 自動更新腳本
 Web Path:
 https://ai2.linwebs.tw/static/images/codi_long.png
 Document Root:
-> /data-disk/ai2-server/appinventor-sources-20200523/appinventor/appengine/build/war/static/images
+> /data-disk/ai2-server/appinventor-sources-20210223/appinventor/appengine/build/war/static/images
 
-## AI2 Server 更新
+## AI2 Server 更新(舊版)
 切換至ai2 server目錄
 ```bash
 $ cd /data-disk/ai2-server
@@ -237,16 +309,15 @@ $ cd /data-disk/ai2-server/appinventor-sources-yyyymmdd/appinventor/
 $ ant MakeAuthKey
 ```
 
-## 更新時須修改檔案(撰寫中)
+## 與原始 ai2 source 不同的檔案
 以下內容撰寫中，請暫時不要使用
 註: 以下 `$AI2_SOURCE_PATH` 的值為 `/data-disk/ai2-server/appinventor-sources-yyyymmdd`
 
-
-* 語言翻譯
+* 所有語言
 	> $AI2_SOURCE_PATH/appinventor/appengine/src/com/google/appinventor/client/languages.json
-
 	* 繁「体」中文 => 繁體中文
-
+* 繁體中文翻譯
+	> $AI2_SOURCE_PATH/appinventor/appengine/src/com/google/appinventor/client/OdeMessages_zh_TW.properties
 * web 設定檔
 	> $AI2_SOURCE_PATH/appinventor//appengine/war/WEB-INF/appengine-web.xml
 	* 登入參數
@@ -255,7 +326,7 @@ $ ant MakeAuthKey
 ## 新 google-cloud-sdk
 /opt/google-cloud-sdk/bin/java_dev_appserver.sh
 
-## 路徑
+## 常用資源路徑
 * logo.png
 	* /appinventor/appengine/war/static/images/
 * codi_long.png
@@ -269,9 +340,6 @@ $ ant MakeAuthKey
 
 ## 舊 crontab
 00 4 1 4,8,12 * sh /data-disk/ai2-server/update/update.sh > /data-disk/ai2-server/update/update.log
-
-## 翻譯
-欢迎使用 App Inventor 2 测试版！
 
 ## 模擬器 error code
 
